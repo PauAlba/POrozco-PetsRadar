@@ -26,14 +26,19 @@ export class LostPetsService {
     host: envs.REDIS_HOST,
     port: envs.REDIS_PORT,
     password: envs.REDIS_PASSWORD || undefined,
+    connectTimeout: 5000,
+    maxRetriesPerRequest: 3,
   });
 
   async getLostPets(): Promise<LostPet[]> {
     try {
       logger.info('Consultando incidentes');
-      const data = await this.cacheService.get<LostPet[]>(
-        CACHE_KEY_ALL_LOST_PETS,
-      );
+      let data: LostPet[] | null = null;
+      try {
+        data = await this.cacheService.get<LostPet[]>(CACHE_KEY_ALL_LOST_PETS);
+      } catch (e) {
+        logger.error(`Error al obtener de caché Redis: ${e}`);
+      }
       if (data && data.length > 0) {
         logger.info('Incidentes en cache');
         return data;
@@ -42,7 +47,11 @@ export class LostPetsService {
       const lostPets = await this.lostPetRepository.find();
       logger.info('[IncidentService] Guardando incidentes en cache');
       const lostPetsString = JSON.stringify(lostPets);
-      this.redis.set(CACHE_KEY_ALL_LOST_PETS, lostPetsString);
+      try {
+        await this.redis.set(CACHE_KEY_ALL_LOST_PETS, lostPetsString);
+      } catch (e) {
+        logger.error(`Error al guardar en caché Redis local: ${e}`);
+      }
       return lostPets;
     } catch (error) {
       logger.error(error);
@@ -92,7 +101,11 @@ export class LostPetsService {
     });
     logger.info('creando registro de mascota perdida');
     await this.lostPetRepository.save(newPet);
-    await this.cacheService.delete(CACHE_KEY_ALL_LOST_PETS);
+    try {
+      await this.cacheService.delete(CACHE_KEY_ALL_LOST_PETS);
+    } catch (e) {
+      logger.error(`Error al borrar caché de Redis (lost pets): ${e}`);
+    }
     const mapImageUrl = generateMapboxImage(dto.lat, dto.lon);
     const template = generateLostPetEmailTemplate(dto, mapImageUrl);
 

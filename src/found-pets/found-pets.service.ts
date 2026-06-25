@@ -25,16 +25,25 @@ export class FoundPetsService {
   async getFoundPets(): Promise<FoundPet[]> {
     try {
       logger.info('Consultando mascotas encontradas');
-      const cached = await this.cacheService.get<FoundPet[]>(
-        CACHE_KEY_ALL_FOUND_PETS,
-      );
+      let cached: FoundPet[] | null = null;
+      try {
+        cached = await this.cacheService.get<FoundPet[]>(
+          CACHE_KEY_ALL_FOUND_PETS,
+        );
+      } catch (e) {
+        logger.error(`Error al obtener de caché Redis: ${e}`);
+      }
       if (cached && cached.length > 0) {
         logger.info('Mascotas encontradas en cache');
         return cached;
       }
 
       const foundPets = await this.foundPetRepository.find();
-      await this.cacheService.set(CACHE_KEY_ALL_FOUND_PETS, foundPets);
+      try {
+        await this.cacheService.set(CACHE_KEY_ALL_FOUND_PETS, foundPets);
+      } catch (e) {
+        logger.error(`Error al guardar en caché Redis: ${e}`);
+      }
       return foundPets;
     } catch (error) {
       logger.error(error);
@@ -52,7 +61,11 @@ export class FoundPetsService {
     });
     logger.info('Creando registro de mascota encontrada');
     await this.foundPetRepository.save(newPet);
-    await this.cacheService.delete(CACHE_KEY_ALL_FOUND_PETS);
+    try {
+      await this.cacheService.delete(CACHE_KEY_ALL_FOUND_PETS);
+    } catch (e) {
+      logger.error(`Error al borrar caché de Redis (found pets): ${e}`);
+    }
 
     const nearbyLostPets = await this.lostPetsService.getPetsByRadius(
       dto.lat,

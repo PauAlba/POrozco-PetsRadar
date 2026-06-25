@@ -8,6 +8,8 @@ export class CacheService {
     host: envs.REDIS_HOST,
     port: envs.REDIS_PORT,
     password: envs.REDIS_PASSWORD || undefined,
+    connectTimeout: 5000,
+    maxRetriesPerRequest: 3,
   });
 
   async get<T>(key: string): Promise<T | null> {
