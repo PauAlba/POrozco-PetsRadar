@@ -5,16 +5,19 @@ import { EmailOptions } from './mail-options.interface';
 @Injectable()
 export class EmailService {
   private transporter = nodemailer.createTransport({
-    service: envs.MAILER_SERVICE,
+    host: 'smtp.resend.com',
+    port: 465,
+    secure: true,
     auth: {
-      user: envs.MAILER_EMAIL,
-      pass: envs.MAILER_PASSWORD,
+      user: 'resend',
+      pass: envs.RESEND_API_KEY,
     },
   });
 
   async sendEmail(options: EmailOptions): Promise<Boolean> {
     try {
       await this.transporter.sendMail({
+        from: 'PetRadar <onboarding@resend.dev>',
         to: options.to,
         subject: options.subject,
         html: options.html,
