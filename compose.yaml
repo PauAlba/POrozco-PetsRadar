@@ -8,9 +8,7 @@ services:
     environment:
         PORT: ${PORT}  
         MAPBOX_TOKEN: ${MAPBOX_TOKEN} 
-        MAILER_EMAIL: ${MAILER_EMAIL} 
-        MAILER_PASSWORD: ${MAILER_PASSWORD} 
-        MAILER_SERVICE: ${MAILER_SERVICE} 
+        RESEND_API_KEY: ${RESEND_API_KEY} 
         DB_PASSWORD: ${DB_PASSWORD} 
         DB_NAME: ${DB_NAME} 
         DB_PORT: ${DB_PORT} 
