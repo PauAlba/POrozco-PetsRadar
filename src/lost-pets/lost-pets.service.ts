@@ -25,6 +25,7 @@ export class LostPetsService {
   private readonly redis = new Redis({
     host: envs.REDIS_HOST,
     port: envs.REDIS_PORT,
+    password: envs.REDIS_PASSWORD || undefined,
   });
 
   async getLostPets(): Promise<LostPet[]> {

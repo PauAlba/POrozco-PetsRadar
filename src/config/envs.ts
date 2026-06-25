@@ -17,4 +17,5 @@ export const envs = {
     .asString(),
   REDIS_HOST: env.get('REDIS_HOST').required().asString(),
   REDIS_PORT: env.get('REDIS_PORT').required().asPortNumber(),
+  REDIS_PASSWORD: env.get('REDIS_PASSWORD').asString(),
 };
